@@ -6,12 +6,41 @@ DFRL:NewMod("Menu", 1, function()
     local Setup = {
         menuframe = nil,
         w = 200,
-        h = ShopFrame_Toggle and 430 or 375,
         gap = 0,
         space = 15,
         btnw = 120,
         btnh = 30,
+        hasIntegratedOptionsFrame = nil,
     }
+
+    function Setup:HasIntegratedOptionsFrame()
+        -- Turtle 1.18.x merged Video, Sound, and Interface into OptionsFrame.
+        if self.hasIntegratedOptionsFrame ~= nil then return self.hasIntegratedOptionsFrame end
+        if not (OptionsFrame and GameOptions) then
+            self.hasIntegratedOptionsFrame = false
+            return false
+        end
+
+        local hasSound = false
+        local hasInterface = false
+        for _, category in ipairs(GameOptions) do
+            if category.name == SOUND then
+                hasSound = true
+            elseif category.name == INTERFACE then
+                hasInterface = true
+            end
+        end
+
+        self.hasIntegratedOptionsFrame = hasSound and hasInterface
+        return self.hasIntegratedOptionsFrame
+    end
+
+    function Setup:GetMenuHeight()
+        if self:HasIntegratedOptionsFrame() then
+            return ShopFrame_Toggle and 370 or 315
+        end
+        return ShopFrame_Toggle and 430 or 375
+    end
 
     function Setup:KillBlizz()
         KillFrame(GameMenuFrame)
@@ -62,7 +91,7 @@ DFRL:NewMod("Menu", 1, function()
 
     function Setup:MenuFrame()
         if not self.menuframe then
-            self.menuframe = T.CreateDFRLFrame(nil, self.w, self.h)
+            self.menuframe = T.CreateDFRLFrame(nil, self.w, self:GetMenuHeight())
             self.menuframe:SetPoint("CENTER", 0,0)
             self.menuframe:EnableMouse(true)
             self.menuframe:Hide()
@@ -148,33 +177,34 @@ end)
                 donationBtn:Hide()
             end
 
-            local videoBtn = DFRL.tools.CreateButton(self.menuframe, "Video", self.btnw, self.btnh)
-            if ShopFrame_Toggle then
-                videoBtn:SetPoint("TOP", donationBtn, "BOTTOM", 0, -self.space)
-            else
-                videoBtn:SetPoint("TOP", addonsBtn, "BOTTOM", 0, -self.space)
-            end
-            videoBtn:SetScript("OnClick", function()
+            local optionsAnchor = ShopFrame_Toggle and donationBtn or addonsBtn
+            local optionsBtn = DFRL.tools.CreateButton(self.menuframe, self:HasIntegratedOptionsFrame() and "Options" or "Video", self.btnw, self.btnh)
+            optionsBtn:SetPoint("TOP", optionsAnchor, "BOTTOM", 0, -self.space)
+            optionsBtn:SetScript("OnClick", function()
                 self.menuframe:Hide()
                 ShowUIPanel(OptionsFrame)
             end)
 
-            local soundBtn = DFRL.tools.CreateButton(self.menuframe, "Sound", self.btnw, self.btnh)
-            soundBtn:SetPoint("TOP", videoBtn, "BOTTOM", 0, -self.gap)
-            soundBtn:SetScript("OnClick", function()
-                self.menuframe:Hide()
-                ShowUIPanel(SoundOptionsFrame)
-            end)
+            local keyAnchor = optionsBtn
+            if not self:HasIntegratedOptionsFrame() then
+                local soundBtn = DFRL.tools.CreateButton(self.menuframe, "Sound", self.btnw, self.btnh)
+                soundBtn:SetPoint("TOP", optionsBtn, "BOTTOM", 0, -self.gap)
+                soundBtn:SetScript("OnClick", function()
+                    self.menuframe:Hide()
+                    ShowUIPanel(SoundOptionsFrame)
+                end)
 
-            local interfaceBtn = DFRL.tools.CreateButton(self.menuframe, "Interface", self.btnw, self.btnh)
-            interfaceBtn:SetPoint("TOP", soundBtn, "BOTTOM", 0, -self.gap)
-            interfaceBtn:SetScript("OnClick", function()
-                self.menuframe:Hide()
-                ShowUIPanel(UIOptionsFrame)
-            end)
+                local interfaceBtn = DFRL.tools.CreateButton(self.menuframe, "Interface", self.btnw, self.btnh)
+                interfaceBtn:SetPoint("TOP", soundBtn, "BOTTOM", 0, -self.gap)
+                interfaceBtn:SetScript("OnClick", function()
+                    self.menuframe:Hide()
+                    ShowUIPanel(UIOptionsFrame)
+                end)
+                keyAnchor = interfaceBtn
+            end
 
             local keyBtn = DFRL.tools.CreateButton(self.menuframe, "Key Bindings", self.btnw, self.btnh)
-            keyBtn:SetPoint("TOP", interfaceBtn, "BOTTOM", 0, -self.space)
+            keyBtn:SetPoint("TOP", keyAnchor, "BOTTOM", 0, -self.space)
             keyBtn:SetScript("OnClick", function()
                 self.menuframe:Hide()
                 KeyBindingFrame_LoadUI()

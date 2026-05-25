@@ -209,7 +209,7 @@ DFRL:NewMod("Mini", 1, function()
                 elseif powerType == 1 then
                     Setup.petManaBar:SetFillColor(1, 0, 0)
                 elseif powerType == 2 then
-                    Setup.petManaBar:SetFillColor(1, 1, 0)
+                    Setup.petManaBar:SetFillColor(1, 0.5, 0.25)
                 end
             end
 
@@ -263,7 +263,7 @@ DFRL:NewMod("Mini", 1, function()
                 elseif powerType == 1 then
                     Setup.totManaBar:SetFillColor(1, 0, 0)
                 elseif powerType == 2 then
-                    Setup.totManaBar:SetFillColor(1, 1, 0)
+                    Setup.totManaBar:SetFillColor(1, 0.5, 0.25)
                 elseif powerType == 3 then
                     Setup.totManaBar:SetFillColor(1, 1, 0)
                 end
@@ -934,7 +934,7 @@ DFRL:NewMod("Mini", 1, function()
                                     elseif powerType == 1 then
                                         Setup.partyManaBars[i]:SetFillColor(1, 0, 0)
                                     elseif powerType == 2 then
-                                        Setup.partyManaBars[i]:SetFillColor(1, 1, 0)
+                                        Setup.partyManaBars[i]:SetFillColor(1, 0.5, 0.25)
                                     elseif powerType == 3 then
                                         Setup.partyManaBars[i]:SetFillColor(1, 1, 0)
                                     end

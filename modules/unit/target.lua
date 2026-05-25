@@ -160,7 +160,7 @@ DFRL:NewMod("Target", 1, function()
                 elseif powerType == 1 then
                     self.manaBar:SetFillColor(1, 0, 0, 1)
                 elseif powerType == 2 then
-                    self.manaBar:SetFillColor(1, 1, 0, 1)
+                    self.manaBar:SetFillColor(1, 0.5, 0.25, 1)
                 elseif powerType == 3 then
                     self.manaBar:SetFillColor(1, 1, 0, 1)
                 end
@@ -625,7 +625,7 @@ DFRL:NewMod("Target", 1, function()
                     elseif powerType == 1 then
                         Setup.manaBar:SetFillColor(1, 0, 0, 1)
                     elseif powerType == 2 then
-                        Setup.manaBar:SetFillColor(1, 1, 0, 1)
+                        Setup.manaBar:SetFillColor(1, 0.5, 0.25, 1)
                     elseif powerType == 3 then
                         Setup.manaBar:SetFillColor(1, 1, 0, 1)
                     end

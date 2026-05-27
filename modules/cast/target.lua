@@ -7,8 +7,9 @@ DFRL:NewDefaults("TargetCastbar", {
     enemyCastbarWidth = {140, "slider", {100, 250}, "enemyCastbar", "enemy castbar", 5, "Change enemy castbar width", nil, nil},
     enemyCastbarHeight = {10, "slider", {8, 24}, "enemyCastbar", "enemy castbar", 6, "Change enemy castbar height", nil, nil},
     enemyCastbarFontSize = {10, "slider", {6, 18}, "enemyCastbar", "enemy castbar", 7, "Change enemy castbar font size", nil, nil},
-    enemyCastbarX = {-12, "slider", {-100, 100}, "enemyCastbar", "enemy castbar", 8, "Change enemy castbar X offset", nil, nil},
-    enemyCastbarY = {-4, "slider", {-120, 40}, "enemyCastbar", "enemy castbar", 9, "Change enemy castbar Y offset", nil, nil},
+    enemyCastbarAutoPosition = {true, "checkbox", nil, "enemyCastbar", "enemy castbar", 8, "Auto adjust position for target buffs/debuffs", nil, nil},
+    enemyCastbarX = {-12, "slider", {-100, 100}, "enemyCastbar", "enemy castbar", 9, "Change enemy castbar X offset", nil, nil},
+    enemyCastbarY = {-4, "slider", {-120, 40}, "enemyCastbar", "enemy castbar", 10, "Change enemy castbar Y offset", nil, nil},
 })
 
 DFRL:NewMod("TargetCastbar", 1, function()
@@ -193,12 +194,27 @@ DFRL:NewMod("TargetCastbar", 1, function()
         self:UpdatePosition(true)
     end
 
+    function Setup:GetAuraRows()
+        local buffRows = 0
+        if TargetFrameBuff1 and TargetFrameBuff1:IsShown() then buffRows = 1 end
+        if TargetFrameBuff6 and TargetFrameBuff6:IsShown() then buffRows = 2 end
+
+        local debuffRows = 0
+        if TargetFrameDebuff1 and TargetFrameDebuff1:IsShown() then debuffRows = 1 end
+        if TargetFrameDebuff5 and TargetFrameDebuff5:IsShown() then debuffRows = 2 end
+        if TargetFrameDebuff9 and TargetFrameDebuff9:IsShown() then debuffRows = 3 end
+
+        return buffRows + debuffRows
+    end
+
     function Setup:GetLayoutKey()
-        local targetOfTarget = TargetofTargetFrame and TargetofTargetFrame:IsShown() and 1 or 0
-        local debuff11 = TargetFrameDebuff11 and TargetFrameDebuff11:IsShown() and 1 or 0
-        local debuff7 = TargetFrameDebuff7 and TargetFrameDebuff7:IsShown() and 1 or 0
+        local autoPosition = DFRL:GetTempDB("TargetCastbar", "enemyCastbarAutoPosition") and 1 or 0
+        local buff6 = TargetFrameBuff6 and TargetFrameBuff6:IsShown() and 1 or 0
         local buff1 = TargetFrameBuff1 and TargetFrameBuff1:IsShown() and 1 or 0
-        return targetOfTarget .. debuff11 .. debuff7 .. buff1 .. DFRL:GetTempDB("TargetCastbar", "enemyCastbarX") .. DFRL:GetTempDB("TargetCastbar", "enemyCastbarY")
+        local debuff9 = TargetFrameDebuff9 and TargetFrameDebuff9:IsShown() and 1 or 0
+        local debuff5 = TargetFrameDebuff5 and TargetFrameDebuff5:IsShown() and 1 or 0
+        local debuff1 = TargetFrameDebuff1 and TargetFrameDebuff1:IsShown() and 1 or 0
+        return autoPosition .. buff6 .. buff1 .. debuff9 .. debuff5 .. debuff1 .. DFRL:GetTempDB("TargetCastbar", "enemyCastbarX") .. DFRL:GetTempDB("TargetCastbar", "enemyCastbarY")
     end
 
     function Setup:UpdatePosition(force)
@@ -210,21 +226,10 @@ DFRL:NewMod("TargetCastbar", 1, function()
 
         local x = DFRL:GetTempDB("TargetCastbar", "enemyCastbarX")
         local y = DFRL:GetTempDB("TargetCastbar", "enemyCastbarY")
-        local targetOfTarget = TargetofTargetFrame and TargetofTargetFrame:IsShown()
-        local debuff11 = TargetFrameDebuff11 and TargetFrameDebuff11:IsShown()
-        local debuff7 = TargetFrameDebuff7 and TargetFrameDebuff7:IsShown()
-        local buff1 = TargetFrameBuff1 and TargetFrameBuff1:IsShown()
 
-        if targetOfTarget then
-            y = y - 20
-            if debuff11 then
-                y = y - 21
-                if buff1 then
-                    y = y - 20
-                end
-            end
-        elseif debuff7 then
-            y = y - 20
+        if DFRL:GetTempDB("TargetCastbar", "enemyCastbarAutoPosition") then
+            local extraRows = math.max(0, self:GetAuraRows() - 2)
+            y = y - 20 - extraRows * 20
         end
 
         self.frame:ClearAllPoints()
@@ -460,6 +465,10 @@ DFRL:NewMod("TargetCastbar", 1, function()
 
     callbacks.enemyCastbarFontSize = function()
         Setup:ApplyStyle()
+    end
+
+    callbacks.enemyCastbarAutoPosition = function()
+        Setup:UpdatePosition(true)
     end
 
     callbacks.enemyCastbarX = function()

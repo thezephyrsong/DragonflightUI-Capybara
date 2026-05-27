@@ -32,6 +32,12 @@ function Setup:ShaguCore()
     ShaguTweaks.mods[T["Unit Frame Class Colors"]].enable = function() end
     ShaguTweaks.mods[T["Unit Frame Health Colors"]].enable = function() end
     ShaguTweaks.mods[T["Unit Frame Class Portraits"]].enable = function() end
+    ShaguTweaks.mods[T["Enemy Castbars"]].enable = function() end
+
+    if ShaguTargetCastbar then
+        ShaguTargetCastbar:Hide()
+        ShaguTargetCastbar.Show = function() end
+    end
 end
 
 function Setup:ShaguExtras()

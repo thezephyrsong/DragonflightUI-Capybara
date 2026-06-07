@@ -129,7 +129,7 @@ DFRL:NewMod("Target", 1, function()
 
         self.texts.healthValue = self.texts.healthTextFrame:CreateFontString(nil)
         self.texts.healthValue:SetFont(cfg.font, cfg.healthFontSize, cfg.outline)
-        self.texts.healthValue:SetPoint('RIGHT', self.healthBar, 'RIGHT', -5, 0)
+        self.texts.healthValue:SetPoint('RIGHT', self.healthBar, 'RIGHT', -5, 1)
 
         if GetCVar("statusBarText") == "1" then
             if TargetHPText then
@@ -188,7 +188,7 @@ DFRL:NewMod("Target", 1, function()
 
         self.texts.manaValue = self.texts.manaTextFrame:CreateFontString(nil)
         self.texts.manaValue:SetFont(cfg.font, cfg.manaFontSize, cfg.outline)
-        self.texts.manaValue:SetPoint('RIGHT', self.manaBar, 'RIGHT', -12, 0)
+        self.texts.manaValue:SetPoint('RIGHT', self.manaBar, 'RIGHT', -5, 0)
     end
 
     function Setup:FrameTextures()
@@ -257,13 +257,13 @@ DFRL:NewMod("Target", 1, function()
                 self.texts.healthValue:SetText(health .. (configCache.textMaxShow and "/" .. maxHealth or ""))
             end
             self.texts.healthValue:ClearAllPoints()
-            self.texts.healthValue:SetPoint('CENTER', self.healthBar, 'CENTER', 0, 0)
+            self.texts.healthValue:SetPoint('CENTER', self.healthBar, 'CENTER', -3, 1)
 
             self.texts.manaPercent:SetText("")
             if maxMana > 0 then
                 self.texts.manaValue:SetText(mana .. (configCache.textMaxShow and "/" .. maxMana or ""))
                 self.texts.manaValue:ClearAllPoints()
-                self.texts.manaValue:SetPoint('CENTER', self.manaBar, 'CENTER', -0, 0)
+                self.texts.manaValue:SetPoint('CENTER', self.manaBar, 'CENTER', -3, 0)
             else
                 self.texts.manaValue:SetText("")
             end
@@ -276,13 +276,13 @@ DFRL:NewMod("Target", 1, function()
                 self.texts.healthValue:SetText(health .. (configCache.textMaxShow and "/" .. maxHealth or ""))
             end
             self.texts.healthValue:ClearAllPoints()
-            self.texts.healthValue:SetPoint('RIGHT', self.healthBar, 'RIGHT', -0, 0)
+            self.texts.healthValue:SetPoint('RIGHT', self.healthBar, 'RIGHT', -5, 1)
 
             if maxMana > 0 then
                 self.texts.manaPercent:SetText(manaPercentInt .. "%")
                 self.texts.manaValue:SetText(mana .. (configCache.textMaxShow and "/" .. maxMana or ""))
                 self.texts.manaValue:ClearAllPoints()
-                self.texts.manaValue:SetPoint('RIGHT', self.manaBar, 'RIGHT', -0, 0)
+                self.texts.manaValue:SetPoint('RIGHT', self.manaBar, 'RIGHT', -5, 0)
             else
                 self.texts.manaPercent:SetText("")
                 self.texts.manaValue:SetText("")

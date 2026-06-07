@@ -6,9 +6,10 @@ DFRL:NewDefaults("Target", {
     textShow = {true, "checkbox", nil, nil, "Text", 4, "Show health and mana text", nil, nil},
     textMaxShow = {true, "checkbox", nil, "textShow", "Text", 5, "Show max health and mana text", nil, nil},
     noPercent = {true, "checkbox", nil, "textShow", "Text", 6, "Show only current values without percentages", nil, nil},
-    useShaguHealth = {false, "checkbox", nil, "textShow", "Text", 7, "Use ShaguTweaks real health values when available", nil, nil},
-    textColoringHealth = {false, "checkbox", nil, "textShow", "Text", 8, "Color text based on health percentage", nil, nil},
-    textColoringResource = {false, "checkbox", nil, "textShow", "Text", 9, "Color text based on resource (mana/rage/energy) percentage", nil, nil},
+    shortValues = {false, "checkbox", nil, "textShow", "Text", 7, "Abbreviate large health and mana values", nil, nil},
+    useShaguHealth = {false, "checkbox", nil, "textShow", "Text", 8, "Use ShaguTweaks real health values when available", nil, nil},
+    textColoringHealth = {false, "checkbox", nil, "textShow", "Text", 9, "Color text based on health percentage", nil, nil},
+    textColoringResource = {false, "checkbox", nil, "textShow", "Text", 10, "Color text based on resource (mana/rage/energy) percentage", nil, nil},
     frameFont = {"FRIZQT__.TTF", "dropdown", {
         "FRIZQT__.TTF",
         "Expressway",
@@ -22,27 +23,42 @@ DFRL:NewDefaults("Target", {
         "BigNoodleTitling",
         "Continuum",
         "DieDieDie"
-    }, nil, "Text", 10, "Change the font used for the targetframe", nil, nil},
-    healthSize = {15, "slider", {8, 20}, "textShow", "Text", 11, "Health text font size", nil, nil},
-    manaSize = {9, "slider", {8, 20}, "textShow", "Text", 12, "Mana text font size", nil, nil},
-    nameSize = {9, "slider", {6, 16}, nil, "Text", 13, "Target name text font size", nil, nil},
-    levelSize = {9, "slider", {6, 16}, nil, "Text", 14, "Target level text font size", nil, nil},
-    colorReaction = {true, "checkbox", nil, nil, "Health Bar", 15, "Color health bar based on target reaction", nil, nil},
-    colorClass = {false, "checkbox", nil, nil, "Health Bar", 16, "Color health bar based on target class", nil, nil},
-    enablePulse = {true, "checkbox", nil, nil, "Health Bar", 17, "Enable pulse animation on bars", nil, nil},
-    pulseColor = {{1, 1, 1}, "colour", nil, "enablePulse", "Health Bar", 18, "Color for pulse animation", nil, nil},
-    enableCutout = {true, "checkbox", nil, nil, "Health Bar", 19, "Enable cutout animation on bars", nil, nil},
-    cutoutColor = {{1, 0, 0}, "colour", nil, "enableCutout", "Health Bar", 20, "Color for damage cutout effect", nil, nil},
+    }, nil, "Text", 11, "Change the font used for the targetframe", nil, nil},
+    healthSize = {15, "slider", {8, 20}, "textShow", "Text", 12, "Health text font size", nil, nil},
+    manaSize = {9, "slider", {8, 20}, "textShow", "Text", 13, "Mana text font size", nil, nil},
+    nameSize = {9, "slider", {6, 16}, nil, "Text", 14, "Target name text font size", nil, nil},
+    levelSize = {9, "slider", {6, 16}, nil, "Text", 15, "Target level text font size", nil, nil},
+    colorReaction = {true, "checkbox", nil, nil, "Health Bar", 16, "Color health bar based on target reaction", nil, nil},
+    colorClass = {false, "checkbox", nil, nil, "Health Bar", 17, "Color health bar based on target class", nil, nil},
+    enablePulse = {true, "checkbox", nil, nil, "Health Bar", 18, "Enable pulse animation on bars", nil, nil},
+    pulseColor = {{1, 1, 1}, "colour", nil, "enablePulse", "Health Bar", 19, "Color for pulse animation", nil, nil},
+    enableCutout = {true, "checkbox", nil, nil, "Health Bar", 20, "Enable cutout animation on bars", nil, nil},
+    cutoutColor = {{1, 0, 0}, "colour", nil, "enableCutout", "Health Bar", 21, "Color for damage cutout effect", nil, nil},
 })
 
 DFRL:NewMod("Target", 1, function()
     local configCache = {
         noPercent = nil,
         textMaxShow = nil,
+        shortValues = nil,
         textColoringHealth = nil,
         textColoringResource = nil,
         lastUpdate = 0
     }
+
+    local function FormatStatusValue(value, shortValues)
+        if shortValues and value >= 999500 then
+            return string.format("%.1fm", value / 1000000)
+        elseif shortValues and value >= 1000 then
+            return string.format("%.1fk", value / 1000)
+        end
+
+        return value
+    end
+
+    local function FormatStatusText(value, maxValue, showMax, shortValues)
+        return FormatStatusValue(value, shortValues) .. (showMax and "/" .. FormatStatusValue(maxValue, shortValues) or "")
+    end
 
     local Setup = {
         texpath = "Interface\\AddOns\\DragonflightUI-Reforged\\media\\tex\\unitframes\\",
@@ -236,14 +252,16 @@ DFRL:NewMod("Target", 1, function()
         local manaPercentInt = math.floor(manaPercent * 100)
 
         local now = GetTime()
-        if not configCache.noPercent or not configCache.textColoringHealth or not configCache.textColoringResource or (now - configCache.lastUpdate > 1) then
+        if configCache.noPercent == nil or configCache.shortValues == nil or configCache.textColoringHealth == nil or configCache.textColoringResource == nil or (now - configCache.lastUpdate > 1) then
             configCache.noPercent = DFRL:GetTempDB("Target", "noPercent")
+            configCache.shortValues = DFRL:GetTempDB("Target", "shortValues")
             configCache.textColoringHealth = DFRL:GetTempDB("Target", "textColoringHealth")
             configCache.textColoringResource = DFRL:GetTempDB("Target", "textColoringResource")
             configCache.lastUpdate = now
         end
 
         local noPercentEnabled = configCache.noPercent
+        local shortValuesEnabled = configCache.shortValues
         local coloringHealthEnabled = configCache.textColoringHealth
         local coloringResourceEnabled = configCache.textColoringResource
 
@@ -254,14 +272,14 @@ DFRL:NewMod("Target", 1, function()
             if isDead then
                 self.texts.healthValue:SetText("")
             else
-                self.texts.healthValue:SetText(health .. (configCache.textMaxShow and "/" .. maxHealth or ""))
+                self.texts.healthValue:SetText(FormatStatusText(health, maxHealth, configCache.textMaxShow, shortValuesEnabled))
             end
             self.texts.healthValue:ClearAllPoints()
             self.texts.healthValue:SetPoint('CENTER', self.healthBar, 'CENTER', -3, 1)
 
             self.texts.manaPercent:SetText("")
             if maxMana > 0 then
-                self.texts.manaValue:SetText(mana .. (configCache.textMaxShow and "/" .. maxMana or ""))
+                self.texts.manaValue:SetText(FormatStatusText(mana, maxMana, configCache.textMaxShow, shortValuesEnabled))
                 self.texts.manaValue:ClearAllPoints()
                 self.texts.manaValue:SetPoint('CENTER', self.manaBar, 'CENTER', -3, 0)
             else
@@ -273,14 +291,14 @@ DFRL:NewMod("Target", 1, function()
                 self.texts.healthValue:SetText("")
             else
                 self.texts.healthPercent:SetText(healthPercentInt .. "%")
-                self.texts.healthValue:SetText(health .. (configCache.textMaxShow and "/" .. maxHealth or ""))
+                self.texts.healthValue:SetText(FormatStatusText(health, maxHealth, configCache.textMaxShow, shortValuesEnabled))
             end
             self.texts.healthValue:ClearAllPoints()
             self.texts.healthValue:SetPoint('RIGHT', self.healthBar, 'RIGHT', -5, 1)
 
             if maxMana > 0 then
                 self.texts.manaPercent:SetText(manaPercentInt .. "%")
-                self.texts.manaValue:SetText(mana .. (configCache.textMaxShow and "/" .. maxMana or ""))
+                self.texts.manaValue:SetText(FormatStatusText(mana, maxMana, configCache.textMaxShow, shortValuesEnabled))
                 self.texts.manaValue:ClearAllPoints()
                 self.texts.manaValue:SetPoint('RIGHT', self.manaBar, 'RIGHT', -5, 0)
             else
@@ -454,6 +472,12 @@ DFRL:NewMod("Target", 1, function()
 
     callbacks.noPercent = function(value)
         configCache.noPercent = value
+        configCache.lastUpdate = GetTime()
+        Setup:UpdateTexts()
+    end
+
+    callbacks.shortValues = function(value)
+        configCache.shortValues = value
         configCache.lastUpdate = GetTime()
         Setup:UpdateTexts()
     end

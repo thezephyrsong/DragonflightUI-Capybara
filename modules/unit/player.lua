@@ -9,8 +9,9 @@ DFRL:NewDefaults("Player", {
     textShow = {true, "checkbox", nil, nil, "Text", 7, "Show health and mana text", nil, nil},
     textMaxShow = {true, "checkbox", nil, "textShow", "Text", 8, "Show max health and mana text", nil, nil},
     noPercent = {true, "checkbox", nil, "textShow", "Text", 9, "Show only current values without percentages", nil, nil},
-    textColoringHealth = {false, "checkbox", nil, "textShow", "Text", 10, "Color text based on health percentage from white to red", nil, nil},
-    textColoringResource = {false, "checkbox", nil, "textShow", "Text", 11, "Color text based on resource (mana/rage/energy) percentage from white to red", nil, nil},
+    shortValues = {false, "checkbox", nil, "textShow", "Text", 10, "Abbreviate large health and mana values", nil, nil},
+    textColoringHealth = {false, "checkbox", nil, "textShow", "Text", 11, "Color text based on health percentage from white to red", nil, nil},
+    textColoringResource = {false, "checkbox", nil, "textShow", "Text", 12, "Color text based on resource (mana/rage/energy) percentage from white to red", nil, nil},
     frameFont = {"FRIZQT__.TTF", "dropdown", {
         "FRIZQT__.TTF",
         "Expressway",
@@ -24,27 +25,41 @@ DFRL:NewDefaults("Player", {
         "BigNoodleTitling",
         "Continuum",
         "DieDieDie"
-    }, nil, "Text", 12, "Change the font used for the playerframe", nil, nil},
-    healthSize = {15, "slider", {8, 20}, "textShow", "Text", 13, "Health text font size", nil, nil},
-    manaSize = {9, "slider", {8, 20}, "textShow", "Text", 14, "Mana text font size", nil, nil},
-    nameSize = {9, "slider", {6, 16}, nil, "Text", 15, "Name text font size", nil, nil},
-    levelSize = {9, "slider", {6, 16}, nil, "Text", 16, "Level text font size", nil, nil},
-    classColor = {false, "checkbox", nil, nil, "Health Bar", 17, "Color health bar based on class", nil, nil},
-    enablePulse = {true, "checkbox", nil, nil, "Health Bar", 18, "Enable pulse animation on bars", nil, nil},
-    pulseColor = {{1, 1, 1}, "colour", nil, "enablePulse", "Health Bar", 19, "Color for pulse animation", nil, nil},
-    enableCutout = {true, "checkbox", nil, nil, "Health Bar", 20, "Enable cutout animation on bars", nil, nil},
-    cutoutColor = {{1, 0, 0}, "colour", nil, "enableCutout", "Health Bar", 21, "Color for damage cutout effect", nil, nil},
-    energyTick = {true, "checkbox", nil, nil, "Health Bar", 22, "Show energy and mana tick indicators", nil, nil},
-    combatGlow = {true, "checkbox", nil, nil, "Combat Effects", 23, "Enable combat pulse animation", nil, nil},
-    glowSpeed = {1, "slider", {0.4, 5}, "combatGlow", "Combat Effects", 24, "Adjust the speed of the combat pulsing", nil, nil},
-    glowAlpha = {1, "slider", {0.1, 1}, "combatGlow", "Combat Effects", 25, "Adjust the maximum alpha of the combat pulsing", nil, nil},
-    restingGlow = {true, "checkbox", nil, nil, "Resting Effects", 26, "Enable resting glow animation", nil, nil},
-    restingSpeed = {1, "slider", {0.4, 5}, "restingGlow", "Resting Effects", 27, "Adjust the speed of the resting pulsing", nil, nil},
-    restingAlpha = {1, "slider", {0.1, 1}, "restingGlow", "Resting Effects", 28, "Adjust the maximum alpha of the resting pulsing", nil, nil},
-    restingColor = {{0, 1, 1}, "colour", nil, "restingGlow", "Resting Effects", 29, "Changes the colour of the resting glow animation", nil, nil},
+    }, nil, "Text", 13, "Change the font used for the playerframe", nil, nil},
+    healthSize = {15, "slider", {8, 20}, "textShow", "Text", 14, "Health text font size", nil, nil},
+    manaSize = {9, "slider", {8, 20}, "textShow", "Text", 15, "Mana text font size", nil, nil},
+    nameSize = {9, "slider", {6, 16}, nil, "Text", 16, "Name text font size", nil, nil},
+    levelSize = {9, "slider", {6, 16}, nil, "Text", 17, "Level text font size", nil, nil},
+    classColor = {false, "checkbox", nil, nil, "Health Bar", 18, "Color health bar based on class", nil, nil},
+    enablePulse = {true, "checkbox", nil, nil, "Health Bar", 19, "Enable pulse animation on bars", nil, nil},
+    pulseColor = {{1, 1, 1}, "colour", nil, "enablePulse", "Health Bar", 20, "Color for pulse animation", nil, nil},
+    enableCutout = {true, "checkbox", nil, nil, "Health Bar", 21, "Enable cutout animation on bars", nil, nil},
+    cutoutColor = {{1, 0, 0}, "colour", nil, "enableCutout", "Health Bar", 22, "Color for damage cutout effect", nil, nil},
+    energyTick = {true, "checkbox", nil, nil, "Health Bar", 23, "Show energy and mana tick indicators", nil, nil},
+    combatGlow = {true, "checkbox", nil, nil, "Combat Effects", 24, "Enable combat pulse animation", nil, nil},
+    glowSpeed = {1, "slider", {0.4, 5}, "combatGlow", "Combat Effects", 25, "Adjust the speed of the combat pulsing", nil, nil},
+    glowAlpha = {1, "slider", {0.1, 1}, "combatGlow", "Combat Effects", 26, "Adjust the maximum alpha of the combat pulsing", nil, nil},
+    restingGlow = {true, "checkbox", nil, nil, "Resting Effects", 27, "Enable resting glow animation", nil, nil},
+    restingSpeed = {1, "slider", {0.4, 5}, "restingGlow", "Resting Effects", 28, "Adjust the speed of the resting pulsing", nil, nil},
+    restingAlpha = {1, "slider", {0.1, 1}, "restingGlow", "Resting Effects", 29, "Adjust the maximum alpha of the resting pulsing", nil, nil},
+    restingColor = {{0, 1, 1}, "colour", nil, "restingGlow", "Resting Effects", 30, "Changes the colour of the resting glow animation", nil, nil},
 })
 
 DFRL:NewMod("Player", 1, function()
+    local function FormatStatusValue(value, shortValues)
+        if shortValues and value >= 999500 then
+            return string.format("%.1fm", value / 1000000)
+        elseif shortValues and value >= 1000 then
+            return string.format("%.1fk", value / 1000)
+        end
+
+        return value
+    end
+
+    local function FormatStatusText(value, maxValue, showMax, shortValues)
+        return FormatStatusValue(value, shortValues) .. (showMax and "/" .. FormatStatusValue(maxValue, shortValues) or "")
+    end
+
     local Setup = {
         texpath = "Interface\\AddOns\\DragonflightUI-Reforged\\media\\tex\\unitframes\\",
         texpath2 = "Interface\\AddOns\\DragonflightUI-Reforged\\media\\tex\\ui\\",
@@ -431,8 +446,9 @@ end
                 Setup.texts.manaPercent:Hide()
             end
 
-            Setup.texts.healthValue:SetText(health .. (Setup.texts.showMaxValues and "/" .. maxHealth or ""))
-            Setup.texts.manaValue:SetText(mana .. (Setup.texts.showMaxValues and "/" .. maxMana or ""))
+            local shortValues = DFRL:GetTempDB("Player", "shortValues")
+            Setup.texts.healthValue:SetText(FormatStatusText(health, maxHealth, Setup.texts.showMaxValues, shortValues))
+            Setup.texts.manaValue:SetText(FormatStatusText(mana, maxMana, Setup.texts.showMaxValues, shortValues))
             Setup.texts.healthValue:Show()
             Setup.texts.manaValue:Show()
 
@@ -500,6 +516,10 @@ end
         Setup.texts.healthPercentShow = not value
         Setup.texts.manaPercentShow = not value
 
+        callbacks.textShow(DFRL:GetTempDB("Player", "textShow"))
+    end
+
+    callbacks.shortValues = function()
         callbacks.textShow(DFRL:GetTempDB("Player", "textShow"))
     end
 

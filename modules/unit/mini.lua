@@ -6,6 +6,7 @@ DFRL:NewDefaults("Mini", {
     totFrameScale = {1, "slider", {0.7, 1.3}, nil, "Appearance", 4, "Adjust target of target frame size", nil, nil},
     partyFrameScale = {1, "slider", {0.7, 1.3}, nil, "Appearance", 5, "Adjust party frame size", nil, nil},
     miniTextShow = {true, "checkbox", nil, nil, "Text", 6, "Show pet/target of target/party health and mana text", nil, nil},
+    miniShortValues = {false, "checkbox", nil, "miniTextShow", "Text", 7, "Abbreviate large health and mana values", nil, nil},
     frameFont = {"FRIZQT__.TTF", "dropdown", {
         "FRIZQT__.TTF",
         "Expressway",
@@ -19,7 +20,7 @@ DFRL:NewDefaults("Mini", {
         "BigNoodleTitling",
         "Continuum",
         "DieDieDie"
-    }, nil, "Text", 7, "Change the font used for all smaller frames", nil, nil},
+    }, nil, "Text", 8, "Change the font used for all smaller frames", nil, nil},
     noPetPercent = {true, "checkbox", nil, "miniTextShow", "Pet Text", 8, "Hide pet health and mana percent text", nil, nil},
     miniPetTextMaxShow = {true, "checkbox", nil, "miniTextShow", "Pet Text", 9, "Show pet max health and mana text", nil, nil},
     noTotPercent = {true, "checkbox", nil, "miniTextShow", "Target of Target Text", 10, "Hide target of target health and mana percent text", nil, nil},
@@ -42,8 +43,23 @@ DFRL:NewMod("Mini", 1, function()
         miniTotTextMaxShow = nil,
         noPartyPercent = nil,
         miniPartyTextMaxShow = nil,
+        miniShortValues = nil,
         lastUpdate = 0
     }
+
+    local function FormatStatusValue(value, shortValues)
+        if shortValues and value >= 999500 then
+            return string.format("%.1fm", value / 1000000)
+        elseif shortValues and value >= 1000 then
+            return string.format("%.1fk", value / 1000)
+        end
+
+        return value
+    end
+
+    local function FormatStatusText(value, maxValue, showMax, shortValues)
+        return FormatStatusValue(value, shortValues) .. (showMax and "/" .. FormatStatusValue(maxValue, shortValues) or "")
+    end
 
     -- setup
     local Setup = {
@@ -419,23 +435,25 @@ DFRL:NewMod("Mini", 1, function()
             local manaPercent = maxMana > 0 and math.floor((mana / maxMana) * 100) or 0
 
             local now = GetTime()
-            if not configCache.noPetPercent or (now - configCache.lastUpdate > 1) then
+            if configCache.noPetPercent == nil or configCache.miniShortValues == nil or (now - configCache.lastUpdate > 1) then
                 configCache.noPetPercent = DFRL:GetTempDB("Mini", "noPetPercent")
+                configCache.miniShortValues = DFRL:GetTempDB("Mini", "miniShortValues")
                 configCache.lastUpdate = now
             end
 
             local noPetPercentEnabled = configCache.noPetPercent
             local isMaxHealthManaEnabled = configCache.miniPetTextMaxShow
+            local shortValuesEnabled = configCache.miniShortValues
 
             if noPetPercentEnabled then
                 Setup.healthPercentText:SetText("")
-                Setup.healthValueText:SetText(health .. (isMaxHealthManaEnabled and "/" .. maxHealth or ""))
+                Setup.healthValueText:SetText(FormatStatusText(health, maxHealth, isMaxHealthManaEnabled, shortValuesEnabled))
                 Setup.healthValueText:ClearAllPoints()
                 Setup.healthValueText:SetPoint("CENTER", Setup.petHealthBar, "CENTER", 0, 0)
 
                 Setup.manaPercentText:SetText("")
                 if maxMana > 0 then
-                    Setup.manaValueText:SetText(mana .. (isMaxHealthManaEnabled and "/" .. maxMana or ""))
+                    Setup.manaValueText:SetText(FormatStatusText(mana, maxMana, isMaxHealthManaEnabled, shortValuesEnabled))
                     Setup.manaValueText:ClearAllPoints()
                     Setup.manaValueText:SetPoint("CENTER", Setup.petManaBar, "CENTER", 0, 0)
                 else
@@ -443,13 +461,13 @@ DFRL:NewMod("Mini", 1, function()
                 end
             else
                 Setup.healthPercentText:SetText(healthPercent .. "%")
-                Setup.healthValueText:SetText(health .. (isMaxHealthManaEnabled and "/" .. maxHealth or ""))
+                Setup.healthValueText:SetText(FormatStatusText(health, maxHealth, isMaxHealthManaEnabled, shortValuesEnabled))
                 Setup.healthValueText:ClearAllPoints()
                 Setup.healthValueText:SetPoint("RIGHT", Setup.petHealthBar, "RIGHT", -5, 0)
 
                 if maxMana > 0 then
                     Setup.manaPercentText:SetText(manaPercent .. "%")
-                    Setup.manaValueText:SetText(mana .. (isMaxHealthManaEnabled and "/" .. maxMana or ""))
+                    Setup.manaValueText:SetText(FormatStatusText(mana, maxMana, isMaxHealthManaEnabled, shortValuesEnabled))
                     Setup.manaValueText:ClearAllPoints()
                     Setup.manaValueText:SetPoint("RIGHT", Setup.petManaBar, "RIGHT", -5, 0)
                 else
@@ -476,11 +494,13 @@ DFRL:NewMod("Mini", 1, function()
         local manaPercent = maxMana > 0 and math.floor((mana / maxMana) * 100) or 0
         local now = GetTime()
         local isMaxHealthManaEnabled = configCache.miniTotTextMaxShow
-        if not configCache.noTotPercent or (now - configCache.lastUpdate > 0.5) then
+        if configCache.noTotPercent == nil or configCache.miniShortValues == nil or (now - configCache.lastUpdate > 0.5) then
             configCache.noTotPercent = DFRL:GetTempDB("Mini", "noTotPercent")
+            configCache.miniShortValues = DFRL:GetTempDB("Mini", "miniShortValues")
             configCache.lastUpdate = now
         end
         local noTotPercentEnabled = configCache.noTotPercent
+        local shortValuesEnabled = configCache.miniShortValues
         local isDead = UnitIsDead("targettarget") or UnitIsGhost("targettarget")
         if isDead then
             self.totHealthPercentText:SetText("")
@@ -491,13 +511,13 @@ DFRL:NewMod("Mini", 1, function()
         end
         if noTotPercentEnabled then
             self.totHealthPercentText:SetText("")
-            self.totHealthValueText:SetText(health .. (isMaxHealthManaEnabled and "/" .. maxHealth or ""))
+            self.totHealthValueText:SetText(FormatStatusText(health, maxHealth, isMaxHealthManaEnabled, shortValuesEnabled))
             self.totHealthValueText:ClearAllPoints()
             self.totHealthValueText:SetPoint("CENTER", self.totHealthBar, "CENTER", 0, 0)
 
             self.totManaPercentText:SetText("")
             if maxMana > 0 then
-                self.totManaValueText:SetText(mana .. (isMaxHealthManaEnabled and "/" .. maxMana or ""))
+                self.totManaValueText:SetText(FormatStatusText(mana, maxMana, isMaxHealthManaEnabled, shortValuesEnabled))
                 self.totManaValueText:ClearAllPoints()
                 self.totManaValueText:SetPoint("CENTER", self.totManaBar, "CENTER", 0, 0)
             else
@@ -505,13 +525,13 @@ DFRL:NewMod("Mini", 1, function()
             end
         else
             self.totHealthPercentText:SetText(healthPercent .. "%")
-            self.totHealthValueText:SetText(health .. (isMaxHealthManaEnabled and "/" .. maxHealth or ""))
+            self.totHealthValueText:SetText(FormatStatusText(health, maxHealth, isMaxHealthManaEnabled, shortValuesEnabled))
             self.totHealthValueText:ClearAllPoints()
             self.totHealthValueText:SetPoint("RIGHT", self.totHealthBar, "RIGHT", -5, 0)
 
             if maxMana > 0 then
                 self.totManaPercentText:SetText(manaPercent .. "%")
-                self.totManaValueText:SetText(mana .. (isMaxHealthManaEnabled and "/" .. maxMana or ""))
+                self.totManaValueText:SetText(FormatStatusText(mana, maxMana, isMaxHealthManaEnabled, shortValuesEnabled))
                 self.totManaValueText:ClearAllPoints()
                 self.totManaValueText:SetPoint("RIGHT", self.totManaBar, "RIGHT", -5, 0)
             else
@@ -680,7 +700,7 @@ DFRL:NewMod("Mini", 1, function()
     callbacks.miniTotTextMaxShow = function(value)
         configCache.miniTotTextMaxShow = value
         configCache.lastUpdate = GetTime()
-        Setup:UpdateTexts()
+        Setup:UpdateTargetOfTargetTexts()
     end
 
     callbacks.miniPartyTextMaxShow = function(value)
@@ -691,8 +711,9 @@ DFRL:NewMod("Mini", 1, function()
                 local health = UnitHealth('party' .. i)
                 local maxHealth = UnitHealthMax('party' .. i)
                 local noPartyPercentEnabled = DFRL:GetTempDB('Mini', 'noPartyPercent')
+                local shortValuesEnabled = DFRL:GetTempDB('Mini', 'miniShortValues')
                 if noPartyPercentEnabled then
-                    Setup.partyHealthPercentTexts[i]:SetText(health .. (value and '/' .. maxHealth or ''))
+                    Setup.partyHealthPercentTexts[i]:SetText(FormatStatusText(health, maxHealth, value, shortValuesEnabled))
                 else
                     local healthPercent = maxHealth > 0 and math.floor((health / maxHealth) * 100) or 0
                     Setup.partyHealthPercentTexts[i]:SetText(healthPercent .. '%')
@@ -713,7 +734,31 @@ DFRL:NewMod("Mini", 1, function()
         Setup:UpdateTargetOfTargetTexts()
     end
 
+    callbacks.miniShortValues = function(value)
+        configCache.miniShortValues = value
+        configCache.lastUpdate = GetTime()
+        Setup.UpdatePetTexts()
+        Setup:UpdateTargetOfTargetTexts()
+
+        for i = 1, 4 do
+            if UnitExists("party" .. i) and Setup.partyHealthBars[i] then
+                local health = UnitHealth("party" .. i)
+                local maxHealth = UnitHealthMax("party" .. i)
+                local noPartyPercentEnabled = DFRL:GetTempDB("Mini", "noPartyPercent")
+                if noPartyPercentEnabled then
+                    Setup.partyHealthPercentTexts[i]:SetText(FormatStatusText(health, maxHealth, configCache.miniPartyTextMaxShow, value))
+                else
+                    local healthPercent = maxHealth > 0 and math.floor((health / maxHealth) * 100) or 0
+                    Setup.partyHealthPercentTexts[i]:SetText(healthPercent .. "%")
+                end
+            end
+        end
+    end
+
     callbacks.noPartyPercent = function(value)
+        configCache.noPartyPercent = value
+        configCache.lastUpdate = GetTime()
+
         for i = 1, 4 do
             if UnitExists("party" .. i) and Setup.partyHealthBars[i] then
                 local health = UnitHealth("party" .. i)
@@ -721,8 +766,9 @@ DFRL:NewMod("Mini", 1, function()
                 Setup.partyHealthBars[i].max = maxHealth
                 Setup.partyHealthBars[i]:SetValue(health)
 
+                local shortValuesEnabled = DFRL:GetTempDB("Mini", "miniShortValues")
                 if value then
-                    Setup.partyHealthPercentTexts[i]:SetText(health .. (configCache.miniPartyTextMaxShow and "/" .. maxHealth or ""))
+                    Setup.partyHealthPercentTexts[i]:SetText(FormatStatusText(health, maxHealth, configCache.miniPartyTextMaxShow, shortValuesEnabled))
                 else
                     local healthPercent = maxHealth > 0 and math.floor((health / maxHealth) * 100) or 0
                     Setup.partyHealthPercentTexts[i]:SetText(healthPercent .. "%")
@@ -889,11 +935,13 @@ DFRL:NewMod("Mini", 1, function()
             (event == "UNIT_RAGE" and string.find(arg1, "party")) or
             (event == "UNIT_FOCUS" and string.find(arg1, "party")) then
             local now = GetTime()
-            if not configCache.noPartyPercent or (now - configCache.lastUpdate > 1) then
+            if configCache.noPartyPercent == nil or configCache.miniShortValues == nil or (now - configCache.lastUpdate > 1) then
                 configCache.noPartyPercent = DFRL:GetTempDB("Mini", "noPartyPercent")
+                configCache.miniShortValues = DFRL:GetTempDB("Mini", "miniShortValues")
                 configCache.lastUpdate = now
             end
             local value = configCache.noPartyPercent
+            local shortValuesEnabled = configCache.miniShortValues
             for i = 1, 4 do
                 if UnitExists("party" .. i) and Setup.partyHealthBars[i] then
                     if not UnitIsConnected("party" .. i) then
@@ -944,7 +992,7 @@ DFRL:NewMod("Mini", 1, function()
                             end
 
                             if value then
-                                Setup.partyHealthPercentTexts[i]:SetText(health .. (configCache.miniPartyTextMaxShow and "/" .. maxHealth or ""))
+                                Setup.partyHealthPercentTexts[i]:SetText(FormatStatusText(health, maxHealth, configCache.miniPartyTextMaxShow, shortValuesEnabled))
                             else
                                 local healthPercent = maxHealth > 0 and math.floor((health / maxHealth) * 100) or 0
                                 Setup.partyHealthPercentTexts[i]:SetText(healthPercent .. "%")

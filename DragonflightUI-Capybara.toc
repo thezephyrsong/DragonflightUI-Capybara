@@ -1,8 +1,8 @@
 ## Interface: 11200
 ## Title: Dragonflight UI |cFFFF0000Reforged|r
-## Notes: Dragonflight UI for Turtle WoW
+## Notes: Dragonflight UI for Capybara Paradise
 ## Version: 1.3.5
-## Author: Guzruul - Reforged by Stormhand
+## Author: Guzruul - Reforged by Stormhand - Capyed by Zae
 ## SavedVariables: DFRL_PROFILES, DFRL_DB_SETUP
 ## SavedVariablesPerCharacter: DFRL_CUR_PROFILE, DFRL_FRAMEPOS
 
@@ -21,6 +21,7 @@ data\tables.lua
 modules\bars\bars.lua
 modules\bars\range.lua
 modules\cast\cast.lua
+modules\fonts\fonts.lua
 modules\chat\chat.lua
 modules\bags\bags.lua
 modules\map\map.lua

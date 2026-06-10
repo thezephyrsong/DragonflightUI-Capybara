@@ -46,9 +46,9 @@ DFRL:NewDefaults("Player", {
 
 DFRL:NewMod("Player", 1, function()
     local Setup = {
-        texpath = "Interface\\AddOns\\DragonflightUI-Reforged\\media\\tex\\unitframes\\",
-        texpath2 = "Interface\\AddOns\\DragonflightUI-Reforged\\media\\tex\\ui\\",
-        fontpath = "Interface\\AddOns\\DragonflightUI-Reforged\\media\\fnt\\",
+        texpath = "Interface\\AddOns\\DragonflightUI-Capybara\\media\\tex\\unitframes\\",
+        texpath2 = "Interface\\AddOns\\DragonflightUI-Capybara\\media\\tex\\ui\\",
+        fontpath = "Interface\\AddOns\\DragonflightUI-Capybara\\media\\fnt\\",
 
         hideFrame = nil,
         restingAnimation = nil,

@@ -27,7 +27,7 @@ local boot = false
 
 -- utility
 function DFRL:GetInfoOrCons(type)
-    local name = "DragonflightUI-Reforged"
+    local name = "DragonflightUI-Capybara"
     if type == "name" then
         return name
     elseif type == "version" then
@@ -54,6 +54,8 @@ function DFRL:CheckAddon(name)
         self.addon3 = true
     elseif name == "Immersion" then
         self.addon4 = true
+    elseif name == "UnicodeFont" then
+        self.addon5 = true
     end
 
     if IsAddOnLoaded("ShaguTweaks") then
@@ -67,6 +69,9 @@ function DFRL:CheckAddon(name)
     end
     if IsAddOnLoaded("Immersion") then
         self.addon4 = true
+    end
+    if IsAddOnLoaded("UnicodeFont") then
+        self.addon5 = true
     end
 end
 
@@ -311,7 +316,7 @@ DFRL:SetScript("OnEvent", function()
     if event == "ADDON_LOADED" then
         DFRL:CheckAddon(arg1)
     end
-    if event == "ADDON_LOADED" and arg1 == "DragonflightUI-Reforged" then
+    if event == "ADDON_LOADED" and arg1 == "DragonflightUI-Capybara" then
         if boot then return end
         DFRL:InitTempDB()
         DFRL:RunMods()

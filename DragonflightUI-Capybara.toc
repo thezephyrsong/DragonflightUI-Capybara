@@ -23,6 +23,7 @@ modules\bars\bars.lua
 modules\bars\range.lua
 modules\cast\cast.lua
 modules\fonts\fonts.lua
+modules\cast\target.lua
 modules\chat\chat.lua
 modules\bags\bags.lua
 modules\map\map.lua

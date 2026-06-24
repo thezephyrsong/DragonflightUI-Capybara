@@ -36,7 +36,7 @@ DFRL:NewMod("RangeIndicator", 1, function()
         if self.useSimple then
             self.indicator = button:CreateFontString(nil, "OVERLAY")
             self.indicator:SetFont("Fonts\\FRIZQT__.TTF", 20, "OUTLINE")
-            self.indicator:SetText("•")
+            self.indicator:SetText("X")
             if self.useDark then
                 self.indicator:SetTextColor(0, 0, 0)
             else
@@ -239,12 +239,17 @@ DFRL:NewMod("RangeIndicator", 1, function()
     end)
 
     local updateTimer = 0
+    local hadRangeTarget = false
     f:SetScript("OnUpdate", function()
         updateTimer = updateTimer + arg1
         if updateTimer >= 0.1 then
-            Setup:ProcessAllButtons(Setup.UpdateIndicatorVisibility)
+            local hasRangeTarget = UnitExists("target") and UnitCanAttack("player", "target")
+            if hasRangeTarget or hadRangeTarget then
+                Setup:ProcessAllButtons(Setup.UpdateIndicatorVisibility)
+            end
+            hadRangeTarget = hasRangeTarget
             updateTimer = 0
-            DFRL.activeScripts["RangeIndicatorScript"] = true
+            DFRL.activeScripts["RangeIndicatorScript"] = hasRangeTarget
         else
             DFRL.activeScripts["RangeIndicatorScript"] = false
         end
